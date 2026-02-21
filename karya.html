@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KaryaAI — Order Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F9F5EE;
+    --warm-white: #FEFCF8;
+    --sand: #E8DFD0;
+    --clay: #C4A882;
+    --terracotta: #C4634A;
+    --terracotta-light: #E8806A;
+    --forest: #2D4A3E;
+    --forest-mid: #3D6355;
+    --forest-light: #5A8A77;
+    --charcoal: #1E1E1E;
+    --mid-gray: #6B7280;
+    --light-gray: #D1C9BE;
+    --text-primary: #1A1A1A;
+    --text-secondary: #5C5248;
+    --text-muted: #8C8478;
+    --card-bg: #FFFFFF;
+    --card-border: rgba(196, 168, 130, 0.25);
+    --card-shadow: 0 2px 16px rgba(45, 74, 62, 0.06), 0 1px 4px rgba(45,74,62,0.04);
+    --card-shadow-hover: 0 12px 40px rgba(45, 74, 62, 0.14), 0 4px 16px rgba(45,74,62,0.08);
+    --radius: 18px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── Background Texture ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(196,168,130,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 85% 90%, rgba(45,74,62,0.08) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── Header ─── */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: rgba(249, 245, 238, 0.88);
+    border-bottom: 1px solid var(--card-border);
+    padding: 0 clamp(16px, 4vw, 48px);
+  }
+  .header-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: var(--forest);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    color: #fff;
+    font-size: 18px;
+    letter-spacing: -1px;
+    box-shadow: 0 2px 8px rgba(45,74,62,0.3);
+    flex-shrink: 0;
+  }
+  .logo-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--forest);
+    letter-spacing: -0.5px;
+  }
+  .logo-text span { color: var(--terracotta); }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .order-count-badge {
+    background: var(--forest);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  .refresh-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--sand);
+    border: 1px solid var(--light-gray);
+    color: var(--text-secondary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .refresh-btn:hover { background: var(--clay); color: #fff; border-color: var(--clay); }
+  .refresh-btn svg { width:14px; height:14px; }
+
+  /* ─── Page Title Section ─── */
+  .page-hero {
+    position: relative;
+    z-index: 1;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: clamp(32px, 6vw, 64px) clamp(16px, 4vw, 48px) clamp(16px, 3vw, 32px);
+  }
+  .page-hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 5vw, 52px);
+    line-height: 1.1;
+    color: var(--charcoal);
+    margin-bottom: 10px;
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeUp 0.7s 0.1s forwards;
+  }
+  .page-hero h1 em {
+    font-style: italic;
+    color: var(--terracotta);
+  }
+  .page-hero p {
+    font-size: 15px;
+    color: var(--text-muted);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.7s 0.25s forwards;
+  }
+
+  /* Filters */
+  .filters-bar {
+    position: relative;
+    z-index: 1;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 4vw, 48px) 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(16px);
+    animation: fadeUp 0.7s 0.35s forwards;
+  }
+  .filter-chip {
+    padding: 7px 16px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: var(--transition);
+    user-select: none;
+  }
+  .filter-chip.all { background: var(--forest); color: #fff; border-color: var(--forest); }
+  .filter-chip.confirm { background: rgba(45,74,62,0.08); color: var(--forest); border-color: rgba(45,74,62,0.2); }
+  .filter-chip.pending { background: rgba(196,99,74,0.08); color: var(--terracotta); border-color: rgba(196,99,74,0.2); }
+  .filter-chip.ready { background: rgba(196,168,130,0.15); color: #7A5C3A; border-color: rgba(196,168,130,0.4); }
+  .filter-chip.cancel { background: rgba(180,60,60,0.08); color: #a03030; border-color: rgba(180,60,60,0.2); }
+  .filter-chip:hover { transform: translateY(-1px); filter: brightness(1.05); }
+  .filter-chip.active { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  .filter-label { font-size: 13px; color: var(--text-muted); margin-right: 4px; }
+
+  /* ─── Grid ─── */
+  .orders-grid {
+    position: relative;
+    z-index: 1;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 4vw, 48px) 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+
+  /* ─── Skeleton ─── */
+  .skeleton-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--card-border);
+    padding: 24px;
+    display: flex; flex-direction: column; gap: 12px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeUp 0.5s forwards, pulse 1.6s 0.5s infinite;
+  }
+  .skeleton-line {
+    height: 12px;
+    background: linear-gradient(90deg, var(--sand) 25%, var(--light-gray) 50%, var(--sand) 75%);
+    background-size: 200% 100%;
+    border-radius: 6px;
+    animation: shimmer 1.6s infinite;
+  }
+  .skeleton-line.w-60 { width: 60%; }
+  .skeleton-line.w-80 { width: 80%; }
+  .skeleton-line.w-40 { width: 40%; }
+  .skeleton-line.h-tall { height: 20px; }
+  .skeleton-btns { display:flex; gap:10px; margin-top: 8px; }
+  .skeleton-btn { height: 36px; flex:1; background: var(--sand); border-radius: 8px; animation: shimmer 1.6s infinite; }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.9; }
+    50% { opacity: 0.6; }
+  }
+
+  /* ─── Order Card ─── */
+  .order-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow);
+    padding: 22px 22px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    opacity: 0;
+    transform: translateY(28px);
+    transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
+    will-change: transform;
+    position: relative;
+    overflow: hidden;
+  }
+  .order-card.visible {
+    animation: cardIn 0.6s cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+  }
+  .order-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    transition: opacity var(--transition);
+  }
+  .order-card.status-confirm::before { background: linear-gradient(90deg, var(--forest-light), var(--forest)); }
+  .order-card.status-pending::before { background: linear-gradient(90deg, var(--terracotta-light), var(--terracotta)); }
+  .order-card.status-ready::before  { background: linear-gradient(90deg, #E0C070, #C4A055); }
+  .order-card.status-cancel::before { background: linear-gradient(90deg, #e08080, #c04040); }
+
+  .order-card:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: var(--card-shadow-hover);
+    border-color: rgba(196,168,130,0.5);
+  }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(28px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Card Header */
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .card-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 19px;
+    line-height: 1.2;
+    color: var(--charcoal);
+    flex: 1;
+  }
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .status-pill .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .pill-confirm { background: rgba(45,74,62,0.1); color: var(--forest); }
+  .pill-confirm .dot { background: var(--forest); }
+  .pill-pending { background: rgba(196,99,74,0.1); color: var(--terracotta); }
+  .pill-pending .dot { background: var(--terracotta); animation: blink 1.2s infinite; }
+  .pill-ready { background: rgba(196,168,130,0.2); color: #7A5C3A; }
+  .pill-ready .dot { background: #C4A055; }
+  .pill-cancel { background: rgba(180,60,60,0.1); color: #a03030; }
+  .pill-cancel .dot { background: #c04040; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* Card Meta Grid */
+  .card-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    margin-bottom: 14px;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .meta-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .meta-value {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+  .meta-value.pending-val {
+    color: var(--light-gray);
+    font-style: italic;
+  }
+  .meta-item.full { grid-column: 1 / -1; }
+
+  /* AI Tag */
+  .ai-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: var(--transition);
+  }
+  .ai-enabled { background: rgba(45,74,62,0.1); color: var(--forest); border: 1px solid rgba(45,74,62,0.2); }
+  .ai-disabled { background: rgba(180,60,60,0.08); color: #a03030; border: 1px solid rgba(180,60,60,0.2); }
+
+  /* Divider */
+  .card-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--card-border), transparent);
+    margin: 12px 0;
+  }
+
+  /* Card Actions */
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .btn-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: var(--transition-spring);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+  }
+  .btn-action::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+  .btn-action:hover::after { background: rgba(255,255,255,0.12); }
+  .btn-action:active { transform: scale(0.96); }
+
+  .btn-ai-toggle {
+    background: var(--forest);
+    color: #fff;
+    border-color: var(--forest);
+  }
+  .btn-ai-toggle:hover {
+    background: var(--forest-mid);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(45,74,62,0.3);
+  }
+  .btn-ai-toggle.ai-is-disabled {
+    background: var(--terracotta);
+    border-color: var(--terracotta);
+  }
+  .btn-ai-toggle.ai-is-disabled:hover {
+    background: #a83c28;
+    box-shadow: 0 4px 16px rgba(196,99,74,0.3);
+  }
+
+  .btn-status {
+    background: transparent;
+    color: var(--text-secondary);
+    border-color: var(--card-border);
+  }
+  .btn-status:hover {
+    background: var(--sand);
+    border-color: var(--clay);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .btn-action svg { width:13px; height:13px; flex-shrink:0; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    z-index: 9999;
+    background: var(--charcoal);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.24);
+    opacity: 0;
+    transform: translateY(16px) scale(0.95);
+    transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: none;
+    max-width: 340px;
+  }
+  .toast.show { opacity: 1; transform: translateY(0) scale(1); }
+  .toast.success { background: var(--forest); }
+  .toast.error { background: #b03030; }
+  .toast-icon { font-size: 16px; }
+
+  /* ─── Modal ─── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,26,0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  @media (min-width: 600px) {
+    .modal-overlay { align-items: center; }
+  }
+  .modal {
+    background: var(--warm-white);
+    border-radius: 22px;
+    padding: 32px 28px 24px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+    transform: translateY(40px) scale(0.95);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--charcoal);
+    margin-bottom: 4px;
+  }
+  .modal-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 22px;
+  }
+  .modal-sub strong { color: var(--text-secondary); }
+
+  .status-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .status-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1.5px solid var(--card-border);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+  }
+  .status-option:hover { border-color: var(--clay); background: rgba(196,168,130,0.06); }
+  .status-option input[type=radio] { position:absolute; opacity:0; }
+  .status-option.selected-opt { border-color: var(--forest); background: rgba(45,74,62,0.05); }
+  .status-option.selected-opt .opt-radio { border-color: var(--forest); }
+  .status-option.selected-opt .opt-radio::after { opacity: 1; transform: scale(1); }
+  .opt-radio {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--light-gray);
+    position: relative;
+    flex-shrink: 0;
+    transition: border-color var(--transition);
+  }
+  .opt-radio::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--forest);
+    opacity: 0;
+    transform: scale(0);
+    transition: var(--transition-spring);
+  }
+  .opt-icon { font-size: 20px; }
+  .opt-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+  .opt-desc { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+  .modal-actions { display:flex; gap:10px; }
+  .btn-modal-cancel {
+    flex:1; padding:11px;
+    background: var(--sand); color: var(--text-secondary);
+    border: 1.5px solid var(--light-gray);
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: var(--transition);
+  }
+  .btn-modal-cancel:hover { background: var(--light-gray); }
+  .btn-modal-confirm {
+    flex:2; padding:11px;
+    background: var(--forest); color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    cursor: pointer; transition: var(--transition);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-modal-confirm:hover { background: var(--forest-mid); }
+  .btn-modal-confirm:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-modal-confirm .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  .btn-modal-confirm.loading .spinner { display: block; }
+  .btn-modal-confirm.loading .btn-text { display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── Utility Animations ─── */
+  @keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── Empty / Error State ─── */
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 64px 24px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--charcoal); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 600px) {
+    .orders-grid { grid-template-columns: 1fr; }
+    .card-meta { grid-template-columns: 1fr; }
+    .card-actions { flex-direction: column; }
+    .header-meta .refresh-btn span { display: none; }
+  }
+  @media (max-width: 400px) {
+    .logo-text { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#">
+      <div class="logo-mark">K</div>
+      <span class="logo-text">Karya<span>AI</span></span>
+    </a>
+    <div class="header-meta">
+      <span class="order-count-badge" id="orderBadge">— orders</span>
+      <button class="refresh-btn" onclick="loadOrders()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        <span>Refresh</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="page-hero">
+  <h1>Order <em>Dashboard</em></h1>
+  <p>Manage and update your orders with AI-powered precision.</p>
+</section>
+
+<!-- Filters -->
+<div class="filters-bar" id="filtersBar">
+  <span class="filter-label">Filter:</span>
+  <button class="filter-chip all active" data-filter="all" onclick="filterCards(this)">All</button>
+  <button class="filter-chip confirm" data-filter="confirm" onclick="filterCards(this)">Confirmed</button>
+  <button class="filter-chip ready" data-filter="ready" onclick="filterCards(this)">Ready</button>
+  <button class="filter-chip pending" data-filter="pending" onclick="filterCards(this)">Pending</button>
+  <button class="filter-chip cancel" data-filter="cancel" onclick="filterCards(this)">Cancelled</button>
+</div>
+
+<!-- Orders Grid -->
+<main class="orders-grid" id="ordersGrid"></main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="statusModal" onclick="closeModal(event)">
+  <div class="modal">
+    <h2 class="modal-title">Update Status</h2>
+    <p class="modal-sub">Order for <strong id="modalCustomerName">—</strong></p>
+    <div class="status-options" id="statusOptions">
+      <label class="status-option" onclick="selectOption(this)">
+        <input type="radio" name="statusChoice" value="confirm">
+        <div class="opt-radio"></div>
+        <span class="opt-icon">✅</span>
+        <div><div class="opt-label">Confirm Order</div><div class="opt-desc">Mark as confirmed & processing</div></div>
+      </label>
+      <label class="status-option" onclick="selectOption(this)">
+        <input type="radio" name="statusChoice" value="ready">
+        <div class="opt-radio"></div>
+        <span class="opt-icon">🚀</span>
+        <div><div class="opt-label">Ready to Deliver</div><div class="opt-desc">Order is packed & out for delivery</div></div>
+      </label>
+      <label class="status-option" onclick="selectOption(this)">
+        <input type="radio" name="statusChoice" value="cancel">
+        <div class="opt-radio"></div>
+        <span class="opt-icon">❌</span>
+        <div><div class="opt-label">Cancel Order</div><div class="opt-desc">Cancel and notify the customer</div></div>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeModal()">Dismiss</button>
+      <button class="btn-modal-confirm" id="confirmStatusBtn" onclick="submitStatus()">
+        <div class="spinner"></div>
+        <span class="btn-text">Update Status</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon">✓</span>
+  <span id="toastMsg">Done!</span>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────
+const WEBHOOK_URL = 'https://n8n.phishnix.site/webhook/fnporderManage'; // ← Replace
+const GOOGLE_SHEET_URL = ''; // ← If fetching from sheet API, set here
+
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
+let allOrders = [];
+let currentFilter = 'all';
+let modalNumber = '';
+let modalOrderRef = null;
+
+// ─────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────
+function cleanNumber(raw) {
+  if (!raw) return '';
+  // Remove everything after @ and strip leading 91, keep 10 digits
+  let n = raw.split('@')[0].replace(/\D/g, '');
+  if (n.startsWith('91') && n.length === 12) n = n.slice(2);
+  return n;
+}
+function rawNumber(raw) {
+  if (!raw) return '';
+  return raw.split('@')[0].replace(/\D/g, '');
+}
+function val(v) {
+  return (v && v.toString().trim()) ? v.toString().trim() : null;
+}
+function fmtDate(d) {
+  if (!d) return null;
+  try {
+    return new Date(d).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'});
+  } catch { return d; }
+}
+function statusClass(s) {
+  if (!s) return 'pending';
+  const l = s.toLowerCase();
+  if (l.includes('confirm')) return 'confirm';
+  if (l.includes('ready')) return 'ready';
+  if (l.includes('cancel')) return 'cancel';
+  return 'pending';
+}
+function statusLabel(s) {
+  const c = statusClass(s);
+  const m = { confirm:'Confirmed', ready:'Ready to Deliver', cancel:'Cancelled', pending:'Pending' };
+  return m[c];
+}
+function aiLabel(v) {
+  return v === '1' ? 'disabled' : 'enabled';
+}
+
+// ─────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────
+function renderSkeletons(n = 6) {
+  const grid = document.getElementById('ordersGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const delay = i * 80;
+    grid.innerHTML += `
+      <div class="skeleton-card" style="animation-delay:${delay}ms">
+        <div class="skeleton-line h-tall w-60" style="animation-delay:${delay+100}ms"></div>
+        <div class="skeleton-line w-80" style="animation-delay:${delay+120}ms"></div>
+        <div class="skeleton-line w-40" style="animation-delay:${delay+140}ms"></div>
+        <div class="skeleton-line w-80" style="animation-delay:${delay+160}ms"></div>
+        <div class="skeleton-line w-60" style="animation-delay:${delay+180}ms"></div>
+        <div class="skeleton-btns">
+          <div class="skeleton-btn" style="animation-delay:${delay+200}ms"></div>
+          <div class="skeleton-btn" style="animation-delay:${delay+220}ms"></div>
+        </div>
+      </div>`;
+  }
+}
+
+function renderOrders(orders) {
+  const grid = document.getElementById('ordersGrid');
+  grid.innerHTML = '';
+  const badge = document.getElementById('orderBadge');
+  badge.textContent = `${orders.length} order${orders.length !== 1 ? 's' : ''}`;
+
+  if (!orders.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">📭</div><h3>No Orders Found</h3><p>Try a different filter or check back later.</p></div>`;
+    return;
+  }
+
+  orders.forEach((order, i) => {
+    const sc = statusClass(order.status);
+    const aiOn = order.ai !== '1'; // 0 = enabled, 1 = disabled
+    const num = val(order.number);
+    const cleanNum = num ? cleanNumber(num) : null;
+    const rawNum = num ? rawNumber(num) : null;
+
+    const metaHtml = [
+      { label: 'Item', value: val(order.item), full: false },
+      { label: 'Quantity', value: val(order.quantityOrdered), full: false },
+      { label: 'Order Date', value: fmtDate(order.orderDate), full: false },
+      { label: 'Expected', value: fmtDate(order.expectedDate), full: false },
+      { label: 'Address', value: val(order.address), full: true },
+      { label: 'Receiver', value: val(order.receiverName), full: false },
+      { label: 'Phone', value: cleanNum, full: false },
+      { label: 'Instance', value: val(order.instanceName), full: false },
+      { label: 'Order Type', value: val(order.orderType), full: false },
+    ].map(m => `
+      <div class="meta-item${m.full ? ' full' : ''}">
+        <span class="meta-label">${m.label}</span>
+        <span class="meta-value${!m.value ? ' pending-val' : ''}">${m.value || 'Pending'}</span>
+      </div>
+    `).join('');
+
+    const msgHtml = val(order.cardMessage) ? `
+      <div class="meta-item full">
+        <span class="meta-label">Card Message</span>
+        <span class="meta-value" style="font-style:italic;color:var(--text-muted)">"${order.cardMessage}"</span>
+      </div>` : '';
+
+    const noteHtml = val(order.note) ? `
+      <div class="meta-item full" style="margin-top:2px">
+        <span class="meta-label">Note</span>
+        <span class="meta-value" style="color:var(--terracotta)">${order.note}</span>
+      </div>` : '';
+
+    const card = document.createElement('div');
+    card.className = `order-card status-${sc}`;
+    card.dataset.status = sc;
+    card.dataset.index = i;
+    card.innerHTML = `
+      <div class="card-header">
+        <div class="card-name">${val(order.customerName) || '<span style="color:var(--text-muted);font-style:italic">Unknown</span>'}</div>
+        <span class="status-pill pill-${sc}"><span class="dot"></span>${statusLabel(order.status)}</span>
+      </div>
+      <div class="card-meta">
+        ${metaHtml}
+        ${msgHtml}
+        ${noteHtml}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0 4px">
+        <span class="meta-label">AI Assistant</span>
+        <span class="ai-tag ${aiOn ? 'ai-enabled' : 'ai-disabled'}" id="aitag-${i}">
+          ${aiOn ? '🤖 Enabled' : '⛔ Disabled'}
+        </span>
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-actions">
+        <button class="btn-action btn-ai-toggle ${!aiOn ? 'ai-is-disabled' : ''}"
+          id="aibtn-${i}"
+          onclick="toggleAI(${i}, '${rawNum || ''}', ${aiOn})"
+          title="${aiOn ? 'Disable AI' : 'Enable AI'}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+          ${aiOn ? 'Disable AI' : 'Enable AI'}
+        </button>
+        <button class="btn-action btn-status"
+          onclick="openModal(${i}, '${rawNum || ''}', '${val(order.customerName) || 'Customer'}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+          </svg>
+          Update Status
+        </button>
+      </div>
+    `;
+
+    // Animate in with scroll observer
+    setTimeout(() => {
+      grid.appendChild(card);
+      observeCard(card, i);
+    }, i * 60);
+  });
+}
+
+// ─────────────────────────────────────────
+// SCROLL REVEAL
+// ─────────────────────────────────────────
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+function observeCard(card, i) {
+  card.style.animationDelay = `${i * 55}ms`;
+  observer.observe(card);
+}
+
+// ─────────────────────────────────────────
+// FILTER
+// ─────────────────────────────────────────
+function filterCards(btn) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.dataset.filter;
+  const filtered = currentFilter === 'all'
+    ? allOrders
+    : allOrders.filter(o => statusClass(o.status) === currentFilter);
+  renderOrders(filtered);
+}
+
+// ─────────────────────────────────────────
+// LOAD ORDERS
+// ─────────────────────────────────────────
+async function loadOrders() {
+  renderSkeletons(6);
+  await new Promise(r => setTimeout(r, 1200)); // simulate load
+
+  
+   try {
+     const res = await fetch('https://script.google.com/macros/s/AKfycbzmhD2jZtKOqGDeL2nq67j6rMp3gWqWg4MZYjWC_3xDolpL8N1Itw-3BKgZ9QWmXBIuow/exec?sheet=Order');
+     const json = await res.json();
+     allOrders = json.map(row => ({
+  customerName: row["Customer Name"] || "",
+  number: row["Number"] || "",
+  item: row["Item"] || "",
+  quantityOrdered: row["Quantity Ordered"] || "",
+  address: row["Address"] || "",
+  orderDate: row["Order Date"] || "",
+  status: row["Status"] || "",
+  instanceName: row["InstanceName"] || "",
+  expectedDate: row["Expected date"] || "",
+  receiverName: row["Receiver name"] || "",
+  cardMessage: row["Card message"] || "",
+  note: row["Note"] || "",
+  orderType: row["order_type"] || "",
+  ai: row["AI"]?.toString() || "0"
+}));
+   } catch (e) {
+     console.error("Error loading orders:", e);
+   }
+  
+
+  renderOrders(allOrders);
+}
+
+// ─────────────────────────────────────────
+// AI TOGGLE
+// ─────────────────────────────────────────
+async function toggleAI(index, rawNum, currentlyEnabled) {
+  const btn = document.getElementById(`aibtn-${index}`);
+  const tag = document.getElementById(`aitag-${index}`);
+  const newAIVal = currentlyEnabled ? 1 : 0; // toggle: enabled→disable(1), disabled→enable(0)
+
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+
+  const body = {
+    number: rawNum,
+    type: 'ai_toggle',
+    ai: newAIVal,
+    // All other fields set to 0 per spec
+    status: 0,
+  };
+
+  try {
+    await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    // Update UI
+    allOrders[index].ai = newAIVal.toString();
+    const aiNowEnabled = newAIVal === 0;
+    tag.className = `ai-tag ${aiNowEnabled ? 'ai-enabled' : 'ai-disabled'}`;
+    tag.textContent = aiNowEnabled ? '🤖 Enabled' : '⛔ Disabled';
+    btn.textContent = '';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+      <path d="M12 6v6l4 2"/>
+    </svg> ${aiNowEnabled ? 'Disable AI' : 'Enable AI'}`;
+    btn.className = `btn-action btn-ai-toggle${!aiNowEnabled ? ' ai-is-disabled' : ''}`;
+    btn.setAttribute('onclick', `toggleAI(${index}, '${rawNum}', ${aiNowEnabled})`);
+
+    showToast(`AI ${aiNowEnabled ? 'enabled' : 'disabled'} for order #${index+1}`, 'success');
+  } catch (e) {
+    showToast('Failed to update AI setting. Check webhook.', 'error');
+  }
+
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
+
+// ─────────────────────────────────────────
+// STATUS MODAL
+// ─────────────────────────────────────────
+function openModal(index, rawNum, name) {
+  modalNumber = rawNum;
+  modalOrderRef = index;
+  document.getElementById('modalCustomerName').textContent = name;
+  document.querySelectorAll('.status-option').forEach(o => o.classList.remove('selected-opt'));
+  document.querySelectorAll('input[name="statusChoice"]').forEach(r => r.checked = false);
+  document.getElementById('confirmStatusBtn').disabled = true;
+  document.getElementById('statusModal').classList.add('open');
+}
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('statusModal')) {
+    document.getElementById('statusModal').classList.remove('open');
+  }
+}
+function selectOption(el) {
+  document.querySelectorAll('.status-option').forEach(o => o.classList.remove('selected-opt'));
+  el.classList.add('selected-opt');
+  el.querySelector('input').checked = true;
+  document.getElementById('confirmStatusBtn').disabled = false;
+}
+async function submitStatus() {
+  const selected = document.querySelector('input[name="statusChoice"]:checked');
+  if (!selected) return;
+  const statusVal = selected.value;
+
+  const btn = document.getElementById('confirmStatusBtn');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  const body = {
+    number: modalNumber,
+    type: 'status_update',
+    status: statusVal,
+    // ai and other fields set to 0 per spec
+    ai: 0,
+  };
+
+  try {
+    await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    // Update local data & card
+    if (modalOrderRef !== null) {
+      allOrders[modalOrderRef].status = statusVal;
+    }
+    closeModal();
+    const filtered = currentFilter === 'all' ? allOrders : allOrders.filter(o => statusClass(o.status) === currentFilter);
+    renderOrders(filtered);
+    showToast(`Status updated to "${statusLabel(statusVal)}"`, 'success');
+  } catch (e) {
+    showToast('Webhook call failed. Please retry.', 'error');
+  }
+
+  btn.classList.remove('loading');
+  btn.disabled = false;
+}
+
+// ─────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.className = `toast ${type}`;
+  t.querySelector('#toastMsg').textContent = msg;
+  t.querySelector('.toast-icon').textContent = type === 'success' ? '✓' : '✕';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ─────────────────────────────────────────
+// KEYBOARD CLOSE MODAL
+// ─────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal({ target: document.getElementById('statusModal') });
+});
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+loadOrders();
+</script>
+</body>
+</html>
