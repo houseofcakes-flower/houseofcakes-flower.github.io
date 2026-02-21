@@ -6,7 +6,18 @@
 <title>KaryaAI — Order Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
-<style>
+
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "6e3c6b34-d718-406e-a57e-14c5f5ec1d23",
+    });
+  });
+</script>
+  
+  <style>
   :root {
     --cream: #F9F5EE;
     --warm-white: #FEFCF8;
@@ -1091,4 +1102,5 @@ loadOrders();
 </body>
 
 </html>
+
 
