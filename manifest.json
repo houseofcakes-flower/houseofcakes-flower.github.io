@@ -1,6 +1,6 @@
 {
   "name": "FNp CRM",
-  "short_name": "NishaHomes CRM",
+  "short_name": "FNP CRM",
   "description": "AI-powered lead management & call tracking",
   "start_url": "/index.html",
   "display": "standalone",
@@ -20,4 +20,5 @@
     }
   ]
 }
+
 
