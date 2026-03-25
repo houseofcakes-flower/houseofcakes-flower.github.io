@@ -1021,11 +1021,11 @@ async function loadOrders() {
 
   
    try {
-     const res = await fetch('https://script.google.com/macros/s/AKfycbzmhD2jZtKOqGDeL2nq67j6rMp3gWqWg4MZYjWC_3xDolpL8N1Itw-3BKgZ9QWmXBIuow/exec?sheet=Order');
+     const res = await fetch('https://api.phishnix.site/api/hofcorders');
      const json = await res.json();
      allOrders = json.map(row => ({
   customerName: row["Customer Name"] || "",
-  number: row["Number"] || "",
+  number: row["Phone Number"] || "",
   item: row["Item"] || "",
   quantityOrdered: row["Quantity Ordered"] || "",
   address: row["Address"] || "",
